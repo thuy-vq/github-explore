@@ -1,11 +1,42 @@
 import React from 'react';
-import OTable from "../../components/OTable";
-import SearchInput from "../../components/SearchInput";
+import OTable from "@/components/OTable";
+import SearchInput from "@/components/SearchInput";
+import {useApiGet} from "@/utils/useApi.ts";
+import {useAuthStore} from "../../store/auth.ts";
+import axios from "axios";
+import {request} from "../../utils/network.ts";
 
 const Home = () => {
-  const handleChange = (value) => {
-    // e.preventDefault();
-    console.log(value);
+  const username = useAuthStore((state) => state.username)
+  const setUsername = useAuthStore((state) => state.setUsername)
+  const token = useAuthStore((state) => state.token)
+
+  const {
+    data,
+    isLoading,
+    error,
+    isError,
+    isLoadingError,
+    refetch
+  } = useApiGet(
+    ["repos", username],
+    () =>
+      request({
+        token,
+        options: {
+          url: `/users/${username}/repos`,
+          method: "GET",
+        }
+      }),
+    {
+      enabled: !!username,
+      refetchOnWindowFocus: true,
+      retry: 0
+    }
+  );
+
+  const handleChange = (value: string) => {
+    setUsername(value);
   };
 
   return (
@@ -16,7 +47,7 @@ const Home = () => {
         onChange={handleChange}
       />
 
-      <OTable />
+      <OTable dataSource={data}/>
     </div>
   );
 };
